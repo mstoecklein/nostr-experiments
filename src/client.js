@@ -54,11 +54,17 @@ export function initNostrNIP07() {
         const { nostr } = event.data;
         const request = requests.get(nostr.id);
         if (!request) return;
-        try {
-          request.resolve(nostr.data);
-        } catch (error) {
-          request.reject(error);
+
+        if (nostr.error) {
+          request.reject(new Error(nostr.error));
+        } else {
+          try {
+            request.resolve(nostr.data);
+          } catch (error) {
+            request.reject(error);
+          }
         }
+
         clearTimeout(request.timeout);
         requests.delete(nostr.id);
       }

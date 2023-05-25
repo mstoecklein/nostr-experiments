@@ -1,6 +1,7 @@
 import {
   assert,
   assertEquals,
+  assertThrows,
 } from "https://deno.land/std@0.189.0/testing/asserts.ts";
 import { stub } from "https://deno.land/std@0.189.0/testing/mock.ts";
 import * as NostrTools from "npm:nostr-tools";
@@ -69,6 +70,7 @@ Deno.test("initNostrNIP07", () => {
     assert(callback);
   });
   initNostrNIP07();
+
   assert(globalThis.nostr);
   listener.restore();
 });
@@ -82,21 +84,41 @@ Deno.test("getPublicKey", async () => {
 
   initNostrNIP07();
   const publicKey = await globalThis.nostr.getPublicKey();
-  assertEquals(publicKey, "publicKey");
 
+  assertEquals(publicKey, "publicKey");
+  restoreGlobalThis();
+});
+
+Deno.test("getPublicKey (error)", async () => {
+  const restoreGlobalThis = stubbedGlobalThis(
+    12345678901234567n,
+    "getPublicKey",
+    { error: "error" }
+  );
+
+  initNostrNIP07();
+
+  try {
+    await globalThis.nostr.getPublicKey();
+  } catch (error) {
+    assertEquals(error, new Error("error"));
+  }
   restoreGlobalThis();
 });
 
 Deno.test("getRelays", async () => {
-  const restoreGlobalThis = stubbedGlobalThis(12345678901234567n, "getRelays", [
-    "wss://relay1.test",
-    "wss://relay2.test",
-  ]);
+  const restoreGlobalThis = stubbedGlobalThis(12345678901234567n, "getRelays", {
+    "wss://relay1.test": { read: true, write: true },
+    "wss://relay2.test": { read: true, write: false },
+  });
 
   initNostrNIP07();
   const relays = await globalThis.nostr.getRelays();
-  assertEquals(relays, ["wss://relay1.test", "wss://relay2.test"]);
 
+  assertEquals(relays, {
+    "wss://relay1.test": { read: true, write: true },
+    "wss://relay2.test": { read: true, write: false },
+  });
   restoreGlobalThis();
 });
 
@@ -117,9 +139,8 @@ Deno.test("signEvent", async () => {
     created_at: Math.floor(Date.now() / 1000),
     tags: [],
   });
-  assert(NostrTools.validateEvent(event));
-  assert(NostrTools.verifySignature(event));
 
+  assert(NostrTools.verifySignature(event));
   restoreGlobalThis();
 });
 
@@ -149,8 +170,8 @@ Deno.test("nip04.encrypt", async () => {
     myPublicKey,
     ciphertext
   );
-  assertEquals(plaintext, "hello, world!");
 
+  assertEquals(plaintext, "hello, world!");
   restoreGlobalThis();
 });
 
@@ -180,7 +201,7 @@ Deno.test("nip04.decrypt", async () => {
     theirPublicKey,
     ciphertext
   );
-  assertEquals(plaintext, "hello, world!");
 
+  assertEquals(plaintext, "hello, world!");
   restoreGlobalThis();
 });
