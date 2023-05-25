@@ -1,0 +1,8 @@
+{
+  "deno.enable": true,
+  "javascript.format.enable": true,
+  "html.format.enable": true,
+  "files.autoSave": "afterDelay",
+  "editor.formatOnSave": true,
+  "liveServer.settings.port": 5501
+}
