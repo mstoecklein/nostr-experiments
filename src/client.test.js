@@ -1,7 +1,6 @@
 import {
   assert,
   assertEquals,
-  assertThrows,
 } from "https://deno.land/std@0.189.0/testing/asserts.ts";
 import { stub } from "https://deno.land/std@0.189.0/testing/mock.ts";
 import * as NostrTools from "npm:nostr-tools";
