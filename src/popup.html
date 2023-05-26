@@ -5,11 +5,126 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Nostr Access :: XP.LIVE</title>
-  <script type="module" src="./popup.js"></script>
+  <script type="module">
+    import "./popup.js";
+  </script>
+  <script src="https://unpkg.com/alpinejs" defer></script>
+  <style>
+    label {
+      display: block;
+    }
+
+    [role="listitem"] label {
+      display: inline-block;
+    }
+  </style>
 </head>
 
 <body>
-  <pre></pre>
+
+  <div x-data="profile">
+    <fieldset>
+      <label x-data="nip19" x-modelable="inputValue" x-model="privateKey" x-effect="genNSEC">
+        <span>Private Key</span>
+        <div role="textbox" contenteditable="true" spellcheck="false" @paste="onPasteNSEC" @click="onClick"
+          @keyup.backspace="onBackspace" @input="onContenteditableInput"
+          x-html="render('Enter a private key (starts with nsec)')">
+        </div>
+      </label>
+      <label x-show="publicKey" x-data="nip19" x-modelable="inputValue" x-model="publicKey" x-effect="genNPUB">
+        <span>Public Key</span>
+        <div role="textbox" spellcheck="false" @click="onClick" @input="onContenteditableInput" x-html="render()">
+        </div>
+      </label>
+    </fieldset>
+
+    <template x-if="me">
+      <fieldset>
+        <label>
+          <span>Name</span>
+          <input type="text" x-model="me.content.name" />
+        </label>
+        <label>
+          <span>About</span>
+          <input type="text" x-model="me.content.about" />
+        </label>
+        <label>
+          <span>Avatar</span>
+          <input type="url" x-model="me.content.picture" />
+        </label>
+        <label>
+          <span>NIP-05 Verification</span>
+          <input type="text" x-model="me.content.nip05" />
+        </label>
+        <label>
+          <span>LUD-16 Lightning Zaps</span>
+          <input type="text" x-model="me.content.lud16" />
+        </label>
+        <label>
+          <span>PoW (leading zero bits)</span>
+          <input type="number" x-model="me.pow" />
+        </label>
+        <button type="button" @click="mining">mining</button>
+      </fieldset>
+    </template>
+  </div>
+
+  <fieldset x-data="relays">
+    <legend>NOSTR Relays</legend>
+    <div role="region">
+      <ul role="list">
+        <template x-for="(settings, url) in Object.fromEntries(relays)">
+          <li class="edititem">
+            <div x-data="{relay: {url, read: settings.read, write: settings.write}}" role="listitem">
+              <div>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="1.5"
+                  stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                  <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                  <path d="M9 7h-3a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-3" />
+                  <path d="M9 15h3l8.5 -8.5a1.5 1.5 0 0 0 -3 -3l-8.5 8.5v3" />
+                  <line x1="16" y1="5" x2="19" y2="8" />
+                </svg>
+              </div>
+              <input x-ref="edit" type="url" pattern="wss://.*" @change="save(relay, $refs.edit)" @click="$el.select()"
+                x-model="relay.url" @keyup.enter="save(relay, $refs.edit)" required />
+              <label class="checkbox-field">
+                <input type="checkbox" role="switch" x-model="relay.read" :checked="relay.read"
+                  @change="save(relay, $refs.edit)" />
+                read
+              </label>
+              <label class="checkbox-field">
+                <input type="checkbox" role="switch" x-model="relay.write" :checked="relay.write"
+                  @change="save(relay, $refs.edit)" />
+                write
+              </label>
+              <button type="button" class="outline secondary" @click="remove(relay)" title="Remove Relay">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="1.5"
+                  stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                  <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+          </li>
+        </template>
+        <li>
+          <label x-data="{relay: {url: '', read: true, write: true}}" role="listitem">
+            <input x-ref="add" type="url" pattern="wss://.*" x-model="relay.url" @input="$el.setCustomValidity('')"
+              @keyup.enter="save(relay, $refs.add, true)" placeholder="wss://relay.example.com" required />
+            <button type="button" class="outline primary" @click="save(relay, $refs.add, true)" title="Add Relay">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="1.5"
+                stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+            </button>
+          </label>
+        </li>
+      </ul>
+    </div>
+  </fieldset>
 </body>
 
 </html>

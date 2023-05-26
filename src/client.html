@@ -5,7 +5,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Nostr Profile :: XP.LIVE</title>
-  <script src="./client.js"></script>
+  <script type="module">
+    import { initNostrNIP07 } from "./client.js";
+    initNostrNIP07();
+  </script>
 </head>
 
 <body>

@@ -3,6 +3,7 @@
   "deno.testing.enable": true,
   "deno.codeLens.test": true,
   "javascript.format.enable": true,
+  "json.format.enable": true,
   "html.format.enable": true,
   "files.autoSave": "afterDelay",
   "editor.formatOnSave": true,

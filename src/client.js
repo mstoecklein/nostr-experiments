@@ -18,15 +18,12 @@ export function initNostrNIP07() {
       return new Promise((resolve, reject) => {
         const id = getId();
 
-        console.log("sendRequest", { id, type, data }, settings);
-
         // open popup
         const popup = globalThis.open(settings.targetUrl, "_blank");
         if (!popup) return reject(new Error("Failed to open popup"));
 
         // send request
         popup.addEventListener("load", () => {
-          console.log("load", { id, type, data });
           const reqTimout = settings.requestTimeout;
           const timeout = setTimeout(
             () => reject(new Error("Request timed out")),
@@ -49,7 +46,6 @@ export function initNostrNIP07() {
     });
 
     globalThis.addEventListener("message", (event) => {
-      console.log("message", event.data);
       if ("nostr" in event.data && settings.origin === event.origin) {
         const { nostr } = event.data;
         const request = requests.get(nostr.id);
