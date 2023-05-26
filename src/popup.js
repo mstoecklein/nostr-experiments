@@ -1,44 +1,9 @@
 import * as NostrTools from "https://esm.sh/nostr-tools@1.11.1";
 import * as sr from "https://unpkg.com/selection-ranges@3.0.3/dist/index.esm.js";
-import { getLeadingZeroBits } from "./PoWer.js";
 import { hexToBytes } from "https://esm.sh/@noble/hashes@1.3.0/utils.mjs";
-
-const pool = new NostrTools.SimplePool();
-
-function getReadableRelays() {
-  return Object.entries(JSON.parse(localStorage.relays || "{}"))
-    .filter(([_, { read }]) => read)
-    .map(([url]) => url);
-}
-
-function getWritableRelays() {
-  return Object.entries(JSON.parse(localStorage.relays || "{}"))
-    .filter(([_, { write }]) => write)
-    .map(([url]) => url);
-}
-
-function executeMiner(privateKey, event, difficulty) {
-  return new Promise((resolve, reject) => {
-    const worker = new Worker("./power_worker.js", { type: "module" });
-
-    console.time(`executeMiner(difficulty=${difficulty})`);
-    worker.addEventListener(
-      "message",
-      (event) => {
-        console.timeEnd(`executeMiner(difficulty=${difficulty})`);
-        console.log("executeMiner", event.data);
-        resolve(event.data);
-      },
-      { once: true }
-    );
-
-    worker.addEventListener("error", (event) => reject(event.error), {
-      once: true,
-    });
-
-    worker.postMessage({ privateKey, event, difficulty });
-  });
-}
+import { getLeadingZeroBits } from "./PoWer.js";
+import * as pooljob from "./pooljob.js";
+import * as powerjob from "./powerjob.js";
 
 globalThis.addEventListener("message", (event) => {
   const { nostr: input } = event.data;
@@ -245,42 +210,31 @@ globalThis.addEventListener("alpine:init", () => {
     publicKey: null,
     me: null,
 
-    _sub: null,
+    // _sub: null,
 
     init() {
+      pooljob.listen(({ id, type, event }) => {
+        console.log("pool", id, type, event);
+        if (type === "event" && event.kind === 0) {
+          this.me = {
+            event,
+            pow: getLeadingZeroBits(hexToBytes(event.id)),
+            content: event.content.startsWith("{")
+              ? JSON.parse(event.content)
+              : event.content,
+          };
+        }
+      });
+
       this.$watch("privateKey", (value) => {
         const isSet = this.setPrivateKey(value);
         if (isSet) {
-          if (this._sub) this._sub.unsub();
-          const sub = (this._sub = pool.sub(getReadableRelays(), [
+          pooljob.req([
             {
               kinds: [0],
               authors: [this.publicKey],
             },
-            {
-              kinds: [2, 3],
-              authors: [this.publicKey],
-            },
-          ]));
-
-          sub.on("event", (event) => {
-            console.log("event", event);
-            if (event.kind === 0) {
-              this.me = {
-                event,
-                pow: getLeadingZeroBits(hexToBytes(event.id)),
-                content: event.content.startsWith("{")
-                  ? JSON.parse(event.content)
-                  : event.content,
-              };
-            }
-          });
-          sub.on("count", (count) => {
-            console.log("count", count);
-          });
-          sub.on("eose", (eose) => {
-            console.log("eose", eose);
-          });
+          ]);
         }
       });
     },
@@ -300,32 +254,25 @@ globalThis.addEventListener("alpine:init", () => {
     mining() {
       if (this.me) {
         console.log("running PoW for event", this.me);
-        executeMiner(
-          this.privateKey,
-          {
-            kind: 0,
-            pubkey: this.publicKey,
-            content: JSON.stringify({
-              name: this.me.content.name,
-              about: this.me.content.about || "",
-              picture: this.me.content.picture || "",
-              nip05: this.me.content.nip05 || "",
-              nip05valid: Boolean(this.me.content.nip05valid),
-              lud16: this.me.content.lud16 || "",
-            }),
-            tags: [...this.me.event.tags.map((tag) => [...tag])],
-            created_at: Math.round(Date.now() / 1000),
-          },
-          this.me.pow
-        ).then((event) => {
-          console.log("PoW result", event);
-          const pub = pool.publish(getWritableRelays(), event);
-          pub.on("ok", (relay) => {
-            console.log("ok", relay);
-          });
-          pub.on("failed", (failed) => {
-            console.log("failed", failed);
-          });
+
+        const event = {
+          kind: 0,
+          pubkey: this.publicKey,
+          content: JSON.stringify({
+            name: this.me.content.name,
+            about: this.me.content.about || "",
+            picture: this.me.content.picture || "",
+            nip05: this.me.content.nip05 || "",
+            nip05valid: Boolean(this.me.content.nip05valid),
+            lud16: this.me.content.lud16 || "",
+          }),
+          tags: this.me.event.tags,
+          created_at: Math.round(Date.now() / 1000),
+        };
+
+        powerjob.mining(this.privateKey, event, this.me.pow).then((event) => {
+          console.log("mined event", event);
+          pooljob.pub(event);
         });
       }
     },

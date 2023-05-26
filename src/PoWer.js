@@ -43,9 +43,9 @@ export function power(privateKey, event, difficulty = 0) {
   let nonceTag = event.tags.find((tag) => tag[0] === "nonce");
   if (nonceTag) {
     nonceTag[1] = "0";
-    nonceTag[2] = "21";
+    nonceTag[2] = difficulty.toString();
   } else {
-    nonceTag = ["nonce", "0", "21"];
+    nonceTag = ["nonce", "0", difficulty.toString()];
     event.tags.push(nonceTag);
   }
 
