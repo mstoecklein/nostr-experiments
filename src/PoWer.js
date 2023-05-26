@@ -49,7 +49,7 @@ export function power(privateKey, event, difficulty = 0) {
     event.tags.push(nonceTag);
   }
 
-  let trials = -1;
+  let trials = Math.round(Math.random() * 1000000);
   let hashBuffer;
   do {
     trials++;

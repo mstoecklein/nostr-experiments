@@ -1,6 +1,7 @@
 import * as NostrTools from "https://esm.sh/nostr-tools@1.11.1";
 import * as sr from "https://unpkg.com/selection-ranges@3.0.3/dist/index.esm.js";
-import { getLeadingZeroBits, power } from "./PoWer.js";
+import { getLeadingZeroBits } from "./PoWer.js";
+import { hexToBytes } from "https://esm.sh/@noble/hashes@1.3.0/utils.mjs";
 
 const pool = new NostrTools.SimplePool();
 
@@ -267,7 +268,7 @@ globalThis.addEventListener("alpine:init", () => {
             if (event.kind === 0) {
               this.me = {
                 event,
-                pow: getLeadingZeroBits(event.id),
+                pow: getLeadingZeroBits(hexToBytes(event.id)),
                 content: event.content.startsWith("{")
                   ? JSON.parse(event.content)
                   : event.content,
