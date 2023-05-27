@@ -1,8 +1,8 @@
 import { getPublicKey } from "https://esm.sh/nostr-tools@1.11.1";
-import { hexToBytes } from "https://esm.sh/@noble/hashes@1.3.0/utils.mjs";
-import { getLeadingZeroBits } from "../PoWer.js";
+import { getLeadingZeroBitsFromHex } from "../PoWer.js";
 import * as pooljob from "../pooljob.js";
 import * as powerjob from "../powerjob.js";
+import { getReadableRelays, getWritableRelays } from "../core/relays.js";
 
 export default function () {
   Alpine.data("profile", () => ({
@@ -12,9 +12,9 @@ export default function () {
 
     init() {
       pooljob.listen(({ id, type, event }) => {
-        console.log("pool", id, type, event);
         if (type === "event" && event.kind === 0) {
-          const pow = getLeadingZeroBits(hexToBytes(event.id));
+          console.log("metadata", id, type, event);
+          const pow = getLeadingZeroBitsFromHex(event.id);
           this.me = {
             event,
             minedEvent: pow > 8 ? event : null,
@@ -29,18 +29,22 @@ export default function () {
       this.$watch("privateKey", (value) => {
         this._load(value);
         if (this.privateKey) {
-          pooljob.req([
-            {
-              kinds: [0],
-              authors: [this.publicKey],
-            },
-          ]);
+          pooljob.req([{ kinds: [0], authors: [this.publicKey] }], {
+            relays: getReadableRelays(),
+          });
         }
       });
       this._load(localStorage.privateKey);
     },
 
     _load(value) {
+      if (!value) {
+        this.privateKey = null;
+        this.publicKey = null;
+        this.me = null;
+        localStorage.removeItem("privateKey");
+        return;
+      }
       this.privateKey = localStorage.privateKey = value;
       this.publicKey = getPublicKey(this.privateKey);
     },
@@ -88,7 +92,7 @@ export default function () {
         console.log("mining and publish metadata event", this.me);
         this._mining()
           .then((event) => {
-            pooljob.pub(event);
+            pooljob.pub(event, { relays: getWritableRelays() });
             this.me.minedEvent = event;
           })
           .catch((err) => {

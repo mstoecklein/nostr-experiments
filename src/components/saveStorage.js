@@ -1,17 +1,11 @@
 export default function () {
   Alpine.data("saveStorage", () => ({
     onExport() {
-      const nostrSettings = JSON.parse(localStorage.getItem("nostrSettings"));
+      const settings = JSON.parse(localStorage.getItem("settings"));
       const relays = JSON.parse(localStorage.getItem("relays"));
-      const blob = new Blob(
-        [
-          JSON.stringify({
-            nostrSettings,
-            relays,
-          }),
-        ],
-        { type: "application/json" }
-      );
+      const blob = new Blob([JSON.stringify({ settings, relays })], {
+        type: "application/json",
+      });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -28,10 +22,7 @@ export default function () {
         const reader = new FileReader();
         reader.onload = () => {
           const data = JSON.parse(reader.result);
-          localStorage.setItem(
-            "nostrSettings",
-            JSON.stringify(data.nostrSettings)
-          );
+          localStorage.setItem("settings", JSON.stringify(data.settings));
           localStorage.setItem("relays", JSON.stringify(data.relays));
           window.location.reload();
         };

@@ -13,8 +13,8 @@ onconnect = (e) => {
       .join("");
     const sub = pool.sub(relays, filters, options);
     subscribers.set(id, sub);
-    sub.on("event", (event) => port.postMessage({ id, event }));
-    sub.on("eose", () => port.postMessage({ id, eose: true }));
+    sub.on("event", (event) => port.postMessage({ id, type: "event", event }));
+    sub.on("eose", () => port.postMessage({ id, type: "eose" }));
   }
 
   port.addEventListener("message", ({ data }) => {
@@ -40,15 +40,17 @@ onconnect = (e) => {
             sub.unsub();
             subscribers.delete(id);
           }
-          port.postMessage({ id, unsub: true });
+          port.postMessage({ id, type: "unsub" });
           break;
         }
         case "pub": {
           const { event } = params;
           const pub = pool.publish(relays, event);
-          pub.on("ok", (relay) => port.postMessage({ pub: true, relay }));
+          pub.on("ok", (relay) =>
+            port.postMessage({ type: "pub", ok: true, relay })
+          );
           pub.on("failed", (relay, reason) =>
-            port.postMessage({ pub: false, relay, reason })
+            port.postMessage({ type: "pub", ok: false, relay, reason })
           );
           break;
         }

@@ -3,19 +3,22 @@
 This repository is a workbench for testing several nostr implementation possibilities (NIPs).
 Feel free to fork and do your own things with it.
 
-You can run the HTML files without any compiler steps. The only framework I use is [AlpineJS](https://alpinejs.dev) for reactivity. I think it's self-explanatory if you look in the code.
+You can run the HTML files without any compiler steps. The only framework I use is [AlpineJS](https://alpinejs.dev) for reactivity.
+
+## Relays
+
+Register your relays in the `relays.html` file. Read/Write will be recognized by the pool.
 
 ## Proof-of-Work (Mining)
 
-My adblocker had an issue with the name `miner.js`, so I called it `PoWer.js` (Proof-of-Work (min)er). You're welcome strangers in exploring [NIP-13](https://github.com/nostr-protocol/nips/blob/master/13.md).
+My adblocker had an issue with the name `miner.js`, so I called it `PoWer.js` (Proof-of-Work (min)er). [NIP-13](https://github.com/nostr-protocol/nips/blob/master/13.md) for more information.
 
-I have a `mining.html` file. You should have at least one relay registered in your local storage to make it work. You can use the `relays.html` file to register a relay.
+I have a `mining.html` file. You should have at least one relay registered in your local storage to make it work. You can use the `relays.html` file to register a relay. Only `kind: 0` is supported at the moment.
 
 ### Mining Workflow
 
 I use a Worker `power_worker.js` to execute the heavy load of mining. It would definitely freeze your browser window.
 
-main thread:
 ```js
 const miner = new Worker('./power_worker.js', {type:'module'});
 miner.onmessage = ev => console.log(ev.data);

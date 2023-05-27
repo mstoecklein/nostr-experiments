@@ -1,5 +1,4 @@
-import { getReadableRelays, getWritableRelays } from "./core/relays.js";
-
+const callbacks = new Set();
 const poolWorker = new SharedWorker("./pool_worker.js", {
   type: "module",
   name: "pool-worker",
@@ -7,56 +6,59 @@ const poolWorker = new SharedWorker("./pool_worker.js", {
 });
 poolWorker.port.start();
 
-export function req(filters, options) {
+poolWorker.port.addEventListener("message", ({ data }) => {
+  for (const callback of callbacks) {
+    try {
+      callback(data);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+});
+
+export function listen(callback) {
+  callbacks.add(callback);
+}
+
+export function req(filters, { relays, id, verb, skipVerification } = {}) {
+  if (!relays || !relays.length) {
+    console.warn("Can't request without relays!");
+    return;
+  }
   poolWorker.port.postMessage({
     type: "req",
-    relays: getReadableRelays(),
-    params: { filters, options },
+    relays: [...new Set([...relays])],
+    params: { filters, options: { id, verb, skipVerification } },
   });
 }
 
-export function count(filters, options) {
+export function count(filters, { relays, id, verb, skipVerification } = {}) {
+  if (!relays || !relays.length) {
+    console.warn("Can't count without relays!");
+    return;
+  }
   poolWorker.port.postMessage({
     type: "count",
-    relays: getReadableRelays(),
-    params: { filters, options },
+    relays: [...new Set([...relays])],
+    params: { filters, options: { id, verb, skipVerification } },
   });
 }
 
 export function unsub(id) {
   poolWorker.port.postMessage({
     type: "unsub",
-    relays: getReadableRelays(),
     params: { id },
   });
 }
 
-export function pub(event) {
+export function pub(event, { relays } = {}) {
+  if (!relays || !relays.length) {
+    console.warn("Can't publish without relays!");
+    return;
+  }
   poolWorker.port.postMessage({
     type: "pub",
-    relays: getWritableRelays(),
+    relays: [...new Set([...relays])],
     params: { event: JSON.parse(JSON.stringify(event)) },
-  });
-}
-
-export function listen(callback) {
-  return poolWorker.port.addEventListener("message", ({ data }) => {
-    try {
-      const { id, event, eose, unsub, pub, relay, reason } = data;
-      if (id) {
-        if (event) {
-          callback({ id, type: "event", event });
-        } else if (eose) {
-          callback({ id, type: "eose" });
-        } else if (unsub) {
-          callback({ id, type: "unsub" });
-        }
-      } else if (typeof pub === "boolean") {
-        callback({ type: "pub", status: pub, relay, reason });
-      }
-    } catch (error) {
-      console.error(error);
-      throw error;
-    }
   });
 }
