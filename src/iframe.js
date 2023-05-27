@@ -1,10 +1,12 @@
 import ApiEndpoint from "./components/api-endpoint.js";
-import Access from "./components/access.js";
+import NIP_19 from "./components/nip19.js";
 import Profile from "./components/profile.js";
+import Relays from "./components/relays.js";
 
-ApiEndpoint(window.opener);
+ApiEndpoint(window.parent);
 
 globalThis.addEventListener("alpine:init", () => {
-  Access();
+  NIP_19();
   Profile();
+  Relays();
 });

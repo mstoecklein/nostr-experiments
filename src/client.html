@@ -6,12 +6,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Nostr Profile :: XP.LIVE</title>
   <script type="module">
-    import { initNostrNIP07 } from "./client.js";
-    initNostrNIP07();
+    import initClient from "./client.js";
+    initClient();
   </script>
+  <script src="https://unpkg.com/alpinejs" defer></script>
 </head>
 
 <body>
+
+  <div x-data="{
+    publicKey: '',
+    async onClick() {
+      this.publicKey = await window.nostr.getPublicKey();
+    }
+  }">
+    <button type="button" @click="onClick()">
+      get public key
+    </button>
+    <pre x-text="publicKey"></pre>
+  </div>
 
 </body>
 

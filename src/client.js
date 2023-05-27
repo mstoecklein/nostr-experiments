@@ -1,4 +1,4 @@
-export function initNostrNIP07() {
+export function initClient() {
   if (!("nostr" in globalThis)) {
     const requests = new Map();
 
@@ -46,7 +46,14 @@ export function initNostrNIP07() {
     });
 
     globalThis.addEventListener("message", (event) => {
-      if ("nostr" in event.data && settings.origin === event.origin) {
+      console.log(event.data);
+
+      const isNostrObject =
+        "object" === typeof event.data &&
+        null !== event.data &&
+        "nostr" in event.data;
+
+      if (isNostrObject && settings.origin === event.origin) {
         const { nostr } = event.data;
         const request = requests.get(nostr.id);
         if (!request) return;
@@ -97,8 +104,20 @@ export function initNostrNIP07() {
           return sendRequest("nip04.decrypt", { pubkey, ciphertext });
         },
       },
+
+      nip26: {
+        createDelegation(pubkey, { kind, until, since }) {
+          return sendRequest("nip26.createDelegation", {
+            pubkey,
+            kind,
+            until,
+            since,
+          });
+        },
+      },
     };
   }
 }
 
+export default initClient;
 // customElements.define("nostr-iframe", class extends HTMLElement {});
