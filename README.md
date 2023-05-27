@@ -1,4 +1,4 @@
-# nostr-profile
+# nostr-experiments
 
 This repository is a workbench for testing several nostr implementation possibilities (NIPs).
 Feel free to fork and do your own things with it.
