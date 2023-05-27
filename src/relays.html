@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nostr Access :: XP.LIVE</title>
+  <script type="module">
+    import Relays from "./components/relays.js";
+    globalThis.addEventListener("alpine:init", () => {
+      Relays();
+    });
+  </script>
+  <script src="https://unpkg.com/alpinejs" defer></script>
+  <style>
+    label {
+      display: block;
+    }
+
+    [role="listitem"] label {
+      display: inline-block;
+    }
+  </style>
+</head>
+
+<body>
+  <div x-data="{
+  onExport() {
+    const nostrSettings = JSON.parse(localStorage.getItem('nostrSettings'));
+    const relays = JSON.parse(localStorage.getItem('relays'));
+    const blob = new Blob([JSON.stringify({
+      nostrSettings,
+      relays,
+    })], {type: 'application/json'})
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'nostr-settings.json'
+    a.click()
+    URL.revokeObjectURL(url)
+  },
+  onImport() {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = 'application/json'
+    input.onchange = () => {
+      const file = input.files[0]
+      const reader = new FileReader()
+      reader.onload = () => {
+        const data = JSON.parse(reader.result)
+        localStorage.setItem('nostrSettings', JSON.stringify(data.nostrSettings))
+        localStorage.setItem('relays', JSON.stringify(data.relays))
+        window.location.reload()
+      }
+      reader.readAsText(file)
+    }
+    input.click()
+  }
+}">
+    <button type="button" @click="onExport">
+      export settings
+    </button>
+    <button type="button" @click="onImport">
+      import settings
+    </button>
+  </div>
+
+  <fieldset x-data="relays">
+    <legend>NOSTR Relays</legend>
+    <div role="region">
+      <ul role="list">
+        <template x-for="(settings, url) in Object.fromEntries(relays)">
+          <li class="edititem">
+            <div x-data="{relay: {url, read: settings.read, write: settings.write}}" role="listitem">
+              <input x-ref="edit" type="url" pattern="wss://.*" @change="save(relay, $refs.edit)" @click="$el.select()"
+                x-model="relay.url" @keyup.enter="save(relay, $refs.edit)" required />
+              <label class="checkbox-field">
+                <input type="checkbox" role="switch" x-model="relay.read" :checked="relay.read"
+                  @change="save(relay, $refs.edit)" />
+                read
+              </label>
+              <label class="checkbox-field">
+                <input type="checkbox" role="switch" x-model="relay.write" :checked="relay.write"
+                  @change="save(relay, $refs.edit)" />
+                write
+              </label>
+              <button type="button" class="outline secondary" @click="remove(relay)" title="Remove Relay">
+                delete
+              </button>
+            </div>
+          </li>
+        </template>
+        <li>
+          <label x-data="{relay: {url: '', read: true, write: true}}" role="listitem">
+            <input x-ref="add" type="url" pattern="wss://.*" x-model="relay.url" @input="$el.setCustomValidity('')"
+              @keyup.enter="save(relay, $refs.add, true)" placeholder="wss://relay.example.com" required />
+            <button type="button" class="outline primary" @click="save(relay, $refs.add, true)" title="Add Relay">
+              add
+            </button>
+          </label>
+        </li>
+      </ul>
+    </div>
+  </fieldset>
+</body>
+
+</html>
