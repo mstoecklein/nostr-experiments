@@ -3,6 +3,8 @@
 This repository is a workbench for testing several nostr implementation possibilities (NIPs).
 Feel free to fork and do your own things with it.
 
+You can run the HTML files without any compiler steps. The only framework I use is [AlpineJS](https://alpinejs.dev) for reactivity. I think it's self-explanatory if you look in the code.
+
 ## Proof-of-Work (Mining)
 
 My adblocker had an issue with the name `miner.js`, so I called it `PoWer.js` (Proof-of-Work (min)er). You're welcome strangers in exploring [NIP-13](https://github.com/nostr-protocol/nips/blob/master/13.md).
