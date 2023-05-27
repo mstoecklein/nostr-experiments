@@ -112,6 +112,7 @@
         <label>
           <span>PoW (leading zero bits)</span>
           <input type="number" x-model="me.pow" />
+          <small>(enter a value between 16 and 21 for reasonable mining results)</small>
         </label>
         <button type="button" @click="mining">mining only</button>
         <pre x-text="me.minedEvent ? JSON.stringify(me.minedEvent, null, 2) : 'Event not mined, yet'"></pre>

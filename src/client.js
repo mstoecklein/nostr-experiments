@@ -3,12 +3,12 @@ export function initClient() {
     const requests = new Map();
 
     const setNostrSettings = function (overwriteSettings = {}) {
-      localStorage.nostrSettings = JSON.stringify(overwriteSettings);
+      localStorage.settings = JSON.stringify(overwriteSettings);
       settings = getNostrSettings();
     };
 
     const getNostrSettings = function (defaults = {}) {
-      return JSON.parse(localStorage.nostrSettings || JSON.stringify(defaults));
+      return JSON.parse(localStorage.settings || JSON.stringify(defaults));
     };
 
     const sendRequest = function (type, data = {}) {

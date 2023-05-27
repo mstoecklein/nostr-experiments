@@ -8,6 +8,10 @@
   <script type="module">
     import initClient from "./client.js";
     initClient();
+
+    const scriptPath = new URL(import.meta.url).pathname;
+    const scriptDir = scriptPath.substring(0, scriptPath.lastIndexOf("/"));
+    nostr.targetUrl = location.origin + scriptDir + "/popup.html";
   </script>
   <script>
     window.addEventListener('alpine:init', () => {
@@ -63,7 +67,7 @@
   }">
     <legend>sign event</legend>
     <button type="button" @click="exec(() => nostr.signEvent(input))">
-      get profile
+      sign event
     </button>
     <button type="button" @click="reset">reset</button>
     <pre x-text="render()"></pre>

@@ -14,9 +14,11 @@ export default function () {
       pooljob.listen(({ id, type, event }) => {
         console.log("pool", id, type, event);
         if (type === "event" && event.kind === 0) {
+          const pow = getLeadingZeroBits(hexToBytes(event.id));
           this.me = {
             event,
-            pow: getLeadingZeroBits(hexToBytes(event.id)),
+            minedEvent: pow > 8 ? event : null,
+            pow,
             content: event.content.startsWith("{")
               ? JSON.parse(event.content)
               : event.content,
@@ -64,17 +66,35 @@ export default function () {
       );
     },
 
-    async mining() {
+    mining() {
       if (this.me) {
         console.log("mining metadata event", this.me);
-        this.me.minedEvent = await this._mining();
+        this._mining()
+          .then((event) => {
+            this.me.minedEvent = event;
+          })
+          .catch((err) => {
+            console.error(err);
+            this.me.minedEvent = null;
+          });
       }
     },
 
     miningAndPublish() {
-      if (this.me && confirm("Mining and publishing this event?")) {
+      if (
+        this.me &&
+        confirm("Are you sure you want to publish this event after mining?")
+      ) {
         console.log("mining and publish metadata event", this.me);
-        this.me.minedEvent = this._mining().then(pooljob.pub);
+        this._mining()
+          .then((event) => {
+            pooljob.pub(event);
+            this.me.minedEvent = event;
+          })
+          .catch((err) => {
+            console.error(err);
+            this.me.minedEvent = null;
+          });
       }
     },
   }));
