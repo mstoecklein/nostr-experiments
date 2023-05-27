@@ -1,7 +1,4 @@
-import {
-  generatePrivateKey,
-  getPublicKey,
-} from "https://esm.sh/nostr-tools@1.11.1";
+import { getPublicKey } from "https://esm.sh/nostr-tools@1.11.1";
 import { hexToBytes } from "https://esm.sh/@noble/hashes@1.3.0/utils.mjs";
 import { getLeadingZeroBits } from "../PoWer.js";
 import * as pooljob from "../pooljob.js";
@@ -14,12 +11,6 @@ export default function () {
     me: null,
 
     init() {
-      this.privateKey = localStorage.privateKey;
-      if (!this.privateKey) {
-        this.privateKey = localStorage.privateKey = generatePrivateKey();
-      }
-      this.publicKey = getPublicKey(this.privateKey);
-
       pooljob.listen(({ id, type, event }) => {
         console.log("pool", id, type, event);
         if (type === "event" && event.kind === 0) {
@@ -34,8 +25,8 @@ export default function () {
       });
 
       this.$watch("privateKey", (value) => {
-        const isSet = this.setPrivateKey(value);
-        if (isSet) {
+        this._load(value);
+        if (this.privateKey) {
           pooljob.req([
             {
               kinds: [0],
@@ -44,13 +35,18 @@ export default function () {
           ]);
         }
       });
+      this._load(localStorage.privateKey);
     },
 
-    mining() {
-      if (this.me) {
-        console.log("running PoW for event", this.me);
+    _load(value) {
+      this.privateKey = localStorage.privateKey = value;
+      this.publicKey = getPublicKey(this.privateKey);
+    },
 
-        const event = {
+    _mining() {
+      return powerjob.mining(
+        this.privateKey,
+        {
           kind: 0,
           pubkey: this.publicKey,
           content: JSON.stringify({
@@ -63,9 +59,22 @@ export default function () {
           }),
           tags: this.me.event.tags,
           created_at: Math.round(Date.now() / 1000),
-        };
+        },
+        this.me.pow
+      );
+    },
 
-        powerjob.mining(this.privateKey, event, this.me.pow).then(pooljob.pub);
+    async mining() {
+      if (this.me) {
+        console.log("mining metadata event", this.me);
+        this.me.minedEvent = await this._mining();
+      }
+    },
+
+    miningAndPublish() {
+      if (this.me && confirm("Mining and publishing this event?")) {
+        console.log("mining and publish metadata event", this.me);
+        this.me.minedEvent = this._mining().then(pooljob.pub);
       }
     },
   }));

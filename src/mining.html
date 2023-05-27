@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nostr Access :: XP.LIVE</title>
+  <script type="module">
+    import ApiEndpoint from "./components/api-endpoint.js";
+    import Profile from "./components/profile.js";
+    import NIP_19 from "./components/nip19.js";
+    import Relays from "./components/relays.js";
+
+    ApiEndpoint(window.opener);
+
+    globalThis.addEventListener("alpine:init", () => {
+      Profile();
+      Relays();
+      NIP_19();
+    });
+  </script>
+  <script src="https://unpkg.com/alpinejs" defer></script>
+  <style>
+    label {
+      display: block;
+    }
+
+    [role="listitem"] label {
+      display: inline-block;
+    }
+  </style>
+</head>
+
+<body>
+  <div x-data="{
+  onExport() {
+    const nostrSettings = JSON.parse(localStorage.getItem('nostrSettings'));
+    const relays = JSON.parse(localStorage.getItem('relays'));
+    const blob = new Blob([JSON.stringify({
+      nostrSettings,
+      relays,
+    })], {type: 'application/json'})
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'nostr-settings.json'
+    a.click()
+    URL.revokeObjectURL(url)
+  },
+  onImport() {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = 'application/json'
+    input.onchange = () => {
+      const file = input.files[0]
+      const reader = new FileReader()
+      reader.onload = () => {
+        const data = JSON.parse(reader.result)
+        localStorage.setItem('nostrSettings', JSON.stringify(data.nostrSettings))
+        localStorage.setItem('relays', JSON.stringify(data.relays))
+        window.location.reload()
+      }
+      reader.readAsText(file)
+    }
+    input.click()
+  }
+}">
+    <button type="button" @click="onExport">
+      export settings
+    </button>
+    <button type="button" @click="onImport">
+      import settings
+    </button>
+  </div>
+
+  <div x-data="profile">
+    <fieldset>
+      <label x-data="nip19" x-modelable="inputValue" x-model="privateKey" x-effect="genNSEC">
+        <span>Private Key</span>
+        <div role="textbox" contenteditable="true" spellcheck="false" @paste="onPasteNSEC" @click="onClick"
+          @keyup.backspace="onBackspace" @input="onContenteditableInput"
+          x-html="render('Enter a private key (starts with nsec)')">
+        </div>
+      </label>
+      <label x-show="publicKey" x-data="nip19" x-modelable="inputValue" x-model="publicKey" x-effect="genNPUB">
+        <span>Public Key</span>
+        <div role="textbox" spellcheck="false" @click="onClick" @input="onContenteditableInput" x-html="render()">
+        </div>
+      </label>
+    </fieldset>
+
+    <template x-if="me">
+      <fieldset>
+        <legend>Mining Profile Metadata</legend>
+        <label>
+          <span>Name</span>
+          <input type="text" x-model="me.content.name" />
+        </label>
+        <label>
+          <span>About</span>
+          <input type="text" x-model="me.content.about" />
+        </label>
+        <label>
+          <span>Avatar</span>
+          <input type="url" x-model="me.content.picture" />
+        </label>
+        <label>
+          <span>NIP-05 Verification</span>
+          <input type="text" x-model="me.content.nip05" />
+        </label>
+        <label>
+          <span>LUD-16 Lightning Zaps</span>
+          <input type="text" x-model="me.content.lud16" />
+        </label>
+        <label>
+          <span>PoW (leading zero bits)</span>
+          <input type="number" x-model="me.pow" />
+        </label>
+        <button type="button" @click="mining">mining only</button>
+        <pre x-text="me.minedEvent ? JSON.stringify(me.minedEvent, null, 2) : 'Event not mined, yet'"></pre>
+        <fieldset>
+          <legend>Be careful if you unleash this power!</legend>
+          <p>This is highly experimental!</p>
+          <button type="button" @click="miningAndPublish">mining and publish</button>
+        </fieldset>
+      </fieldset>
+    </template>
+  </div>
+
+  <ul x-data="relays">
+    <template x-for="([relay, options]) in Array.from(relays)">
+      <li>
+        <del x-show="!options.read && !options.write" x-text="relay"></del>
+        <b x-show="options.read || options.write" x-text="relay"></b>
+        <span x-show="options.read">readable</span>
+        <span x-show="options.write">writable</span>
+      </li>
+    </template>
+  </ul>
+</body>
+
+</html>
