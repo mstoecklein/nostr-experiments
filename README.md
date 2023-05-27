@@ -9,6 +9,26 @@ My adblocker had an issue with the name `miner.js`, so I called it `PoWer.js` (P
 
 I have a `mining.html` file. You should have at least one relay registered in your local storage to make it work. You can use the `relays.html` file to register a relay.
 
+### Mining Workflow
+
+I use a Worker `power_worker.js` to execute the heavy load of mining. It would definitely freeze your browser window.
+
+main thread:
+```js
+const miner = new Worker('./power_worker.js', {type:'module'});
+miner.onmessage = ev => console.log(ev.data);
+
+miner.postMessage({
+  privateKey: '<YOUR_PRIVATE_KEY>',
+  
+  // Must be a valid Nsotr event
+  event: { ... },
+  
+  // Reasonable wait time: 16-21 (everything above takes time)
+  difficulty: 16
+});
+```
+
 ## NIP-07 Capability for Web Browsers
 
 Use the `client.html` to test the `window.nostr` functions.
