@@ -6,7 +6,7 @@ import { stub } from "https://deno.land/std@0.189.0/testing/mock.ts";
 import * as NostrTools from "npm:nostr-tools";
 
 import "./client.js";
-import { initNostrNIP07 } from "./client.js";
+import initClient from "./client.js";
 
 globalThis.location = new URL("http://localhost/");
 
@@ -14,7 +14,7 @@ const stubbedGlobalThis = (id, type, responseData) => {
   let listener;
 
   const now = stub(Date, "now", () => 1234567890123);
-  const random = stub(Math, "random", () => 0.4567);
+  const random = stub(Math, "random", () => 0.4);
 
   const open = stub(globalThis, "open", () => ({
     addEventListener(type, callback) {
@@ -63,12 +63,12 @@ const stubbedGlobalThis = (id, type, responseData) => {
   };
 };
 
-Deno.test("initNostrNIP07", () => {
+Deno.test("initClient", () => {
   const listener = stub(globalThis, "addEventListener", (type, callback) => {
     assertEquals(type, "message");
     assert(callback);
   });
-  initNostrNIP07();
+  initClient();
 
   assert(globalThis.nostr);
   listener.restore();
@@ -76,12 +76,12 @@ Deno.test("initNostrNIP07", () => {
 
 Deno.test("getPublicKey", async () => {
   const restoreGlobalThis = stubbedGlobalThis(
-    12345678901234567n,
+    12345678901234n,
     "getPublicKey",
     "publicKey"
   );
 
-  initNostrNIP07();
+  initClient();
   const publicKey = await globalThis.nostr.getPublicKey();
 
   assertEquals(publicKey, "publicKey");
@@ -89,13 +89,11 @@ Deno.test("getPublicKey", async () => {
 });
 
 Deno.test("getPublicKey (error)", async () => {
-  const restoreGlobalThis = stubbedGlobalThis(
-    12345678901234567n,
-    "getPublicKey",
-    { error: "error" }
-  );
+  const restoreGlobalThis = stubbedGlobalThis(12345678901234n, "getPublicKey", {
+    error: "error",
+  });
 
-  initNostrNIP07();
+  initClient();
 
   try {
     await globalThis.nostr.getPublicKey();
@@ -106,12 +104,12 @@ Deno.test("getPublicKey (error)", async () => {
 });
 
 Deno.test("getRelays", async () => {
-  const restoreGlobalThis = stubbedGlobalThis(12345678901234567n, "getRelays", {
+  const restoreGlobalThis = stubbedGlobalThis(12345678901234n, "getRelays", {
     "wss://relay1.test": { read: true, write: true },
     "wss://relay2.test": { read: true, write: false },
   });
 
-  initNostrNIP07();
+  initClient();
   const relays = await globalThis.nostr.getRelays();
 
   assertEquals(relays, {
@@ -124,14 +122,14 @@ Deno.test("getRelays", async () => {
 Deno.test("signEvent", async () => {
   const privateKey = NostrTools.generatePrivateKey();
   const restoreGlobalThis = stubbedGlobalThis(
-    12345678901234567n,
+    12345678901234n,
     "signEvent",
     ({ event }) => {
       return NostrTools.finishEvent(event, privateKey);
     }
   );
 
-  initNostrNIP07();
+  initClient();
   const event = await globalThis.nostr.signEvent({
     kind: 1,
     content: "hello, world!",
@@ -150,7 +148,7 @@ Deno.test("nip04.encrypt", async () => {
   const theirPublicKey = NostrTools.getPublicKey(theirPrivateKey);
 
   const restoreGlobalThis = stubbedGlobalThis(
-    12345678901234567n,
+    12345678901234n,
     "nip04.encrypt",
     ({ pubkey, plaintext }) => {
       assertEquals(pubkey, theirPublicKey);
@@ -158,7 +156,7 @@ Deno.test("nip04.encrypt", async () => {
     }
   );
 
-  initNostrNIP07();
+  initClient();
   const ciphertext = await globalThis.nostr.nip04.encrypt(
     theirPublicKey,
     "hello, world!"
@@ -181,7 +179,7 @@ Deno.test("nip04.decrypt", async () => {
   const theirPublicKey = NostrTools.getPublicKey(theirPrivateKey);
 
   const restoreGlobalThis = stubbedGlobalThis(
-    12345678901234567n,
+    12345678901234n,
     "nip04.decrypt",
     ({ pubkey, ciphertext }) => {
       assertEquals(pubkey, theirPublicKey);
@@ -189,7 +187,7 @@ Deno.test("nip04.decrypt", async () => {
     }
   );
 
-  initNostrNIP07();
+  initClient();
   const ciphertext = await NostrTools.nip04.encrypt(
     theirPrivateKey,
     myPublicKey,
