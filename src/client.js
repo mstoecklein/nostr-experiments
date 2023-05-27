@@ -11,12 +11,10 @@ export function initClient() {
       return JSON.parse(localStorage.nostrSettings || JSON.stringify(defaults));
     };
 
-    const getId = () =>
-      BigInt(Date.now()) * 10000n + BigInt(Math.round(Math.random() * 10000));
-
     const sendRequest = function (type, data = {}) {
       return new Promise((resolve, reject) => {
-        const id = getId();
+        const id =
+          BigInt(Date.now()) * 10n + BigInt(Math.round(Math.random() * 10));
 
         // open popup
         const popup = globalThis.open(settings.targetUrl, "_blank");
