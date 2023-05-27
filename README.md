@@ -15,9 +15,9 @@ Use the `client.html` to test the `window.nostr` functions.
 
 - [x] `window.nostr.getPublicKey()`
 - [x] `window.nostr.getRelays()`
+- [x] `window.nostr.signEvent(event)`
 - [x] `window.nostr.nip04.encrypt(pubkey, plaintext)`
 - [x] `window.nostr.nip04.decrypt(pubkey, ciphertext)`
-- [x] `window.nostr.signEvent(event)`
 - [x] `window.nostr.nip26.createDelegation(pubkey, { kind: number, until: number, since: number })`
 
 More info on [NIP-07](https://github.com/nostr-protocol/nips/blob/master/07.md).
