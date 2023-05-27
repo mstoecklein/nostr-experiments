@@ -9,6 +9,10 @@ You can run the HTML files without any compiler steps. The only framework I use 
 
 Register your relays in the `relays.html` file. Read/Write will be recognized by the pool.
 
+## Notes (note, naddr, nevent)
+
+You can view notes in the `notes.html` file.
+
 ## Proof-of-Work (Mining)
 
 My adblocker had an issue with the name `miner.js`, so I called it `PoWer.js` (Proof-of-Work (min)er). [NIP-13](https://github.com/nostr-protocol/nips/blob/master/13.md) for more information.
