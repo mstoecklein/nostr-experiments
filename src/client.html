@@ -9,22 +9,132 @@
     import initClient from "./client.js";
     initClient();
   </script>
+  <script>
+    window.addEventListener('alpine:init', () => {
+      Alpine.data('io', () => ({
+        input: null,
+        error: null,
+        output: null,
+
+        async exec(fn) {
+          this.error = null;
+          try {
+            this.output = await fn(this.input);
+          } catch (error) {
+            this.error = error;
+            this.output = null;
+          }
+        },
+
+        reset() {
+          this.error = null;
+          this.output = null;
+        },
+
+        render() {
+          if (this.error) {
+            return this.error.message;
+          } else if (this.output) {
+            return JSON.stringify(this.output, null, 2);
+          }
+          return this.input ? JSON.stringify(this.input, null, 2) : '';
+        }
+      }));
+    })
+  </script>
   <script src="https://unpkg.com/alpinejs" defer></script>
 </head>
 
 <body>
-
-  <div x-data="{
-    publicKey: '',
-    async onClick() {
-      this.publicKey = await window.nostr.getPublicKey();
-    }
-  }">
-    <button type="button" @click="onClick()">
+  <fieldset x-data="io">
+    <legend>get public key</legend>
+    <button type="button" @click="exec(nostr.getPublicKey)">
       get public key
     </button>
-    <pre x-text="publicKey"></pre>
-  </div>
+    <button type="button" @click="reset">reset</button>
+    <pre x-text="render()"></pre>
+  </fieldset>
+
+  <fieldset x-data="io" x-init="input = {
+    kind: 1,
+    content: 'hello, world!',
+    created_at: Math.round(Date.now() / 1000),
+    tags: []
+  }">
+    <legend>sign event</legend>
+    <button type="button" @click="exec(() => nostr.signEvent(input))">
+      get profile
+    </button>
+    <button type="button" @click="reset">reset</button>
+    <pre x-text="render()"></pre>
+  </fieldset>
+
+  <fieldset x-data="io">
+    <legend>get relays</legend>
+    <button type="button" @click="exec(() => nostr.getRelays(input))">
+      get relays
+    </button>
+    <button type="button" @click="reset">reset</button>
+    <pre x-text="render()"></pre>
+  </fieldset>
+
+  <fieldset x-data="io" x-init="input = {pubkey: null, plaintext: ''}">
+    <legend>encrypt message</legend>
+    <div>
+      <input type="text" placeholder="enter public key" x-model="input.pubkey" />
+    </div>
+    <div>
+      <textarea placeholder="enter plaintext" x-model="input.plaintext"></textarea>
+    </div>
+    <button type="button" @click="exec(() => nostr.nip04.encrypt(input.pubkey, input.plaintext))">
+      encrypt
+    </button>
+    <button type="button" @click="reset">reset</button>
+    <pre x-text="render()"></pre>
+  </fieldset>
+
+  <fieldset x-data="io" x-init="input = {pubkey: null, ciphertext: ''}">
+    <legend>decrypt message</legend>
+    <div>
+      <input type="text" placeholder="enter public key" x-model="input.pubkey" />
+    </div>
+    <div>
+      <textarea placeholder="enter ciphertext" x-model="input.ciphertext"></textarea>
+    </div>
+    <button type="button" @click="exec(() => nostr.nip04.decrypt(input.pubkey, input.ciphertext))">
+      decrypt
+    </button>
+    <button type="button" @click="reset">reset</button>
+    <pre x-text="render()"></pre>
+  </fieldset>
+
+  <fieldset x-data="io" x-init="input = {
+    pubkey: null,
+    options: {
+      kind: 1,
+      until: Math.round(Date.now() / 1000) + 3600,
+      since: Math.round(Date.now() / 1000)
+    }
+  }">
+    <legend>delegate</legend>
+    <div>
+      <input type="text" placeholder="enter public key" x-model="input.pubkey" />
+    </div>
+    <div>
+      <input type="number" placeholder="enter kind" x-model="input.options.kind" />
+    </div>
+    <div>
+      <input type="number" placeholder="enter until" x-model="input.options.until" />
+    </div>
+    <div>
+      <input type="number" placeholder="enter since" x-model="input.options.since" />
+    </div>
+    <button type="button" @click="exec(() => nostr.nip26.createDelegation(input.pubkey, input.options))">
+      delegate
+    </button>
+    <button type="button" @click="reset">reset</button>
+    <pre x-text="render()"></pre>
+  </fieldset>
 
 </body>
 

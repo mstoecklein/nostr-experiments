@@ -1,6 +1,6 @@
 import {
   getPublicKey,
-  signEvent,
+  finishEvent,
   nip04,
   nip26,
 } from "https://esm.sh/nostr-tools@1.11.1";
@@ -14,21 +14,22 @@ export async function access() {
   const { mode, origin, input } = getRequestState();
   if (mode !== "request") return;
 
+  const privateKey = localStorage.privateKey;
   const channel = getChannel();
   const nostr = { id: input.id };
   try {
     switch (input.type) {
       case "getPublicKey": {
-        nostr.data = getPublicKey(localStorage.privateKey);
+        nostr.data = getPublicKey(privateKey);
         break;
       }
       case "signEvent": {
         const { event } = input.data;
-        nostr.data = signEvent(event, privateKey);
+        nostr.data = finishEvent(event, privateKey);
         break;
       }
       case "getRelays": {
-        nostr.data = JSON.parse(localStorage.relays);
+        nostr.data = JSON.parse(localStorage.relays || "{}");
         break;
       }
       case "nip04.encrypt": {

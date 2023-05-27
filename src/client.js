@@ -89,6 +89,7 @@ export function initClient() {
       },
 
       signEvent(event) {
+        event = JSON.parse(JSON.stringify(event));
         return sendRequest("signEvent", { event });
       },
 
