@@ -4,6 +4,7 @@ import { setRange, getRange } from "https://esm.sh/selection-ranges@3.0.3";
 export default function () {
   Alpine.data("nip19", () => ({
     obfuscate: false,
+    inputType: null,
     inputValue: null,
     outputValue: null,
 
@@ -11,10 +12,51 @@ export default function () {
       this.obfuscate = !this.obfuscate;
     },
 
-    genNSEC() {
+    genNOTE() {
+      if (!this.inputValue) return;
       try {
-        if (this.inputValue?.length > 0) {
+        this.inputType = "note";
+        this.outputValue = nip19.noteEncode(
+          this.inputValue?.id || this.inputValue
+        );
+        this.inputType = this.extract(this.outputValue);
+        this.obfuscate = false;
+      } catch {
+        // ignore
+      }
+    },
+
+    genNEVENT() {
+      if (!this.inputValue) return;
+      try {
+        this.inputType = "nevent";
+        this.outputValue = nip19.neventEncode(this.inputValue);
+        this.inputType = this.extract(this.outputValue);
+        this.obfuscate = false;
+      } catch {
+        // ignore
+      }
+    },
+
+    genNADDR() {
+      if (!this.inputValue) return;
+      try {
+        this.inputType = "naddr";
+        this.outputValue = nip19.naddrEncode(this.inputValue);
+        this.inputType = this.extract(this.outputValue);
+        this.obfuscate = false;
+      } catch {
+        // ignore
+      }
+    },
+
+    genNSEC() {
+      if (!this.inputValue) return;
+      try {
+        this.inputType = "nsec";
+        if (this.inputValue.length > 0) {
           this.outputValue = nip19.nsecEncode(this.inputValue);
+          this.inputType = this.extract(this.outputValue);
         } else {
           this.outputValue = null;
         }
@@ -25,9 +67,12 @@ export default function () {
     },
 
     genNPUB() {
+      if (!this.inputValue) return;
       try {
-        if (this.inputValue?.length > 0) {
+        this.inputType = "npub";
+        if (this.inputValue.length > 0) {
           this.outputValue = nip19.npubEncode(this.inputValue);
+          this.inputType = this.extract(this.outputValue);
         } else {
           this.outputValue = null;
         }
@@ -51,6 +96,20 @@ export default function () {
         return data;
       }
       return altText;
+    },
+
+    extract(value) {
+      if (!value) return false;
+      try {
+        const { type, data } = nip19.decode(value);
+        this.inputType = type;
+        this.inputValue = data;
+        this.outputValue = value;
+        return true;
+      } catch {
+        // ignore
+      }
+      return false;
     },
 
     extractNSEC(input) {

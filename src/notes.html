@@ -61,14 +61,32 @@
     <fieldset x-data="notes">
       <label x-show="publicKey" x-data="nip19" x-modelable="inputValue" x-model="publicKey">
         <span>Text Note</span>
-        <div role="textbox" contenteditable="true" spellcheck="false" @paste="navigator.clipboard.readText().then(load)"
-          @click="onClick" @input="onContenteditableInput" x-html="render('Enter a note, naddr or nevent')">
+        <div role="textbox" contenteditable="true" spellcheck="false" @paste="onPasteBech32Entity" @click="onClick"
+          @input="onContenteditableInput" x-html="render('Enter a note, naddr or nevent')">
         </div>
       </label>
       <pre x-text="event ? JSON.stringify(event, null, 2) : 'Note not found'"></pre>
+      <div x-show="inputValue" x-data="nip19" x-modelable="inputValue" x-model="event" x-effect="genNOTE">
+        <div role="textbox" contenteditable="true" spellcheck="false" @click="onClick" x-html="render()">
+        </div>
+        <pre x-text="JSON.stringify(inputValue, null, 2)">
+        </pre>
+      </div>
+      <div x-show="inputValue" x-data="nip19" x-modelable="inputValue" x-model="myEventPointer" x-effect="genNEVENT">
+        <div role="textbox" contenteditable="true" spellcheck="false" @click="onClick" x-html="render()">
+        </div>
+        <pre x-text="JSON.stringify(inputValue, null, 2)">
+        </pre>
+      </div>
+      <div x-show="inputValue" x-data="nip19" x-modelable="inputValue" x-model="myAddrPointer" x-effect="genNADDR">
+        <div role="textbox" contenteditable="true" spellcheck="false" @click="onClick" x-html="render()">
+        </div>
+        <pre x-text="JSON.stringify(inputValue, null, 2)">
+        </pre>
+      </div>
     </fieldset>
 
-    <fieldset x-data="noteMining">
+    <fieldset x-data="notes">
       <div x-show="publicKey" x-data="nip19" x-modelable="inputValue" x-model="publicKey">
         <label for="note_content">Text Note Mining</label>
         <textarea id="note_content" placeholder="Enter a message to mine" x-model="content"></textarea>
@@ -80,6 +98,24 @@
       <button type="button" @click="onMine">Mine</button>
       <button type="button" @click="onPublish">Mine and Send</button>
       <pre x-text="event ? JSON.stringify(event, null, 2) : 'Nothing mined, yet'"></pre>
+      <div x-show="inputValue" x-data="nip19" x-modelable="inputValue" x-model="event" x-effect="genNOTE">
+        <div role="textbox" contenteditable="true" spellcheck="false" @click="onClick" x-html="render()">
+        </div>
+        <pre x-text="JSON.stringify(inputValue, null, 2)">
+        </pre>
+      </div>
+      <div x-show="inputValue" x-data="nip19" x-modelable="inputValue" x-model="myEventPointer" x-effect="genNEVENT">
+        <div role="textbox" contenteditable="true" spellcheck="false" @click="onClick" x-html="render()">
+        </div>
+        <pre x-text="JSON.stringify(inputValue, null, 2)">
+        </pre>
+      </div>
+      <div x-show="inputValue" x-data="nip19" x-modelable="inputValue" x-model="myAddrPointer" x-effect="genNADDR">
+        <div role="textbox" contenteditable="true" spellcheck="false" @click="onClick" x-html="render()">
+        </div>
+        <pre x-text="JSON.stringify(inputValue, null, 2)">
+        </pre>
+      </div>
     </fieldset>
   </div>
 
