@@ -1,8 +1,8 @@
 import { /* getPublicKey, */ nip19 } from "https://esm.sh/nostr-tools@1.11.1";
 import { getLeadingZeroBitsFromHex } from "../PoWer.js";
 import * as pooljob from "../pooljob.js";
-// import * as powerjob from "../powerjob.js";
-import { getReadableRelays } from "../core/relays.js";
+import * as powerjob from "../powerjob.js";
+import { getReadableRelays, getWritableRelays } from "../core/relays.js";
 
 export default function () {
   Alpine.data("notes", () => ({
@@ -50,6 +50,48 @@ export default function () {
       } catch (e) {
         console.log(e);
         return;
+      }
+    },
+  }));
+
+  Alpine.data("noteMining", () => ({
+    content: "",
+    difficulty: 0,
+    event: null,
+
+    _mining() {
+      const { content, difficulty } = this;
+      const event = {
+        kind: 1,
+        content,
+        tags: [],
+      };
+
+      return powerjob.mining(localStorage.privateKey, event, difficulty);
+    },
+
+    async onMine() {
+      try {
+        const event = await this._mining();
+        this.event = event;
+        this.content = "";
+        this.difficulty = 0;
+      } catch (error) {
+        console.error(error);
+        this.event = null;
+      }
+    },
+
+    async onPublish() {
+      try {
+        const event = await this._mining();
+        pooljob.pub(event, { relays: getWritableRelays() });
+        this.event = event;
+        this.content = "";
+        this.difficulty = 0;
+      } catch (error) {
+        console.error(error);
+        this.event = null;
       }
     },
   }));

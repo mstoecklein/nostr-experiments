@@ -59,9 +59,27 @@
     </fieldset>
 
     <fieldset x-data="notes">
-      <input type="text" @paste="navigator.clipboard.readText().then(load)" @change="load()"
-        placeholder="Enter a note, naddr or nevent">
+      <label x-show="publicKey" x-data="nip19" x-modelable="inputValue" x-model="publicKey">
+        <span>Text Note</span>
+        <div role="textbox" contenteditable="true" spellcheck="false" @paste="navigator.clipboard.readText().then(load)"
+          @click="onClick" @input="onContenteditableInput" x-html="render('Enter a note, naddr or nevent')">
+        </div>
+      </label>
       <pre x-text="event ? JSON.stringify(event, null, 2) : 'Note not found'"></pre>
+    </fieldset>
+
+    <fieldset x-data="noteMining">
+      <div x-show="publicKey" x-data="nip19" x-modelable="inputValue" x-model="publicKey">
+        <label for="note_content">Text Note Mining</label>
+        <textarea id="note_content" placeholder="Enter a message to mine" x-model="content"></textarea>
+      </div>
+      <div>
+        <label for="note_difficulty">Difficulty</label>
+        <input id="note_difficulty" type="number" x-model="difficulty">
+      </div>
+      <button type="button" @click="onMine">Mine</button>
+      <button type="button" @click="onPublish">Mine and Send</button>
+      <pre x-text="event ? JSON.stringify(event, null, 2) : 'Nothing mined, yet'"></pre>
     </fieldset>
   </div>
 

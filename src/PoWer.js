@@ -35,6 +35,7 @@ export function getLeadingZeroBitsFromHex(hex) {
 
 export function power(privateKey, event, difficulty = 0) {
   if (difficulty === 0) {
+    event.created_at = Math.round(Date.now() / 1000);
     return NostrTools.finishEvent(event, privateKey);
   }
 

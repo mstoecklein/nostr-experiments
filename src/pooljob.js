@@ -22,8 +22,7 @@ export function listen(callback) {
 
 export function req(filters, { relays, id, verb, skipVerification } = {}) {
   if (!relays || !relays.length) {
-    console.warn("Can't request without relays!");
-    return;
+    throw new Error("Can't request without relays!");
   }
   poolWorker.port.postMessage({
     type: "req",
@@ -34,8 +33,7 @@ export function req(filters, { relays, id, verb, skipVerification } = {}) {
 
 export function count(filters, { relays, id, verb, skipVerification } = {}) {
   if (!relays || !relays.length) {
-    console.warn("Can't count without relays!");
-    return;
+    throw new Error("Can't count without relays!");
   }
   poolWorker.port.postMessage({
     type: "count",
@@ -53,8 +51,7 @@ export function unsub(id) {
 
 export function pub(event, { relays } = {}) {
   if (!relays || !relays.length) {
-    console.warn("Can't publish without relays!");
-    return;
+    throw new Error("Can't publish without relays!");
   }
   poolWorker.port.postMessage({
     type: "pub",
