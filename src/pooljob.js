@@ -7,6 +7,7 @@ const poolWorker = new SharedWorker("./pool_worker.js", {
 poolWorker.port.start();
 
 poolWorker.port.addEventListener("message", ({ data }) => {
+  console.log("poolWorker.port.addEventListener", data);
   for (const callback of callbacks) {
     try {
       callback(data);

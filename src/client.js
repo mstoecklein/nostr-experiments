@@ -1,3 +1,5 @@
+import { getId } from "./core/utils.js";
+
 export function initClient() {
   if (!("nostr" in globalThis)) {
     const requests = new Map();
@@ -13,8 +15,7 @@ export function initClient() {
 
     const sendRequest = function (type, data = {}) {
       return new Promise((resolve, reject) => {
-        const id =
-          BigInt(Date.now()) * 10n + BigInt(Math.round(Math.random() * 10));
+        const id = getId(2);
 
         // open popup
         const popup = globalThis.open(settings.targetUrl, "_blank");
