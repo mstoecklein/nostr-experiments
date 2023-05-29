@@ -1,8 +1,8 @@
 import { getPublicKey } from "https://esm.sh/nostr-tools@1.11.1";
-import { getLeadingZeroBitsFromHex } from "../PoWer.js";
+import { getReadableRelays, getWritableRelays } from "../core/relays.js";
+import { getLeadingZeroBitsFromHex } from "../core/utils.js";
 import * as pooljob from "../pooljob.js";
 import * as powerjob from "../powerjob.js";
-import { getReadableRelays, getWritableRelays } from "../core/relays.js";
 
 export default function () {
   Alpine.data("profile", () => ({
@@ -13,7 +13,7 @@ export default function () {
     init() {
       pooljob.listen(({ id, type, event }) => {
         if (type === "event" && event.kind === 0) {
-          console.log("metadata", id, type, event);
+          // console.log("metadata", id, type, event);
           const pow = getLeadingZeroBitsFromHex(event.id);
           this.me = {
             event,
