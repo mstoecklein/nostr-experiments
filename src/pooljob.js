@@ -4,8 +4,10 @@ const poolWorker = new SharedWorker("./pool_worker.js", {
   name: "pool-worker",
   credentials: "same-origin",
 });
+
 poolWorker.port.start();
 
+console.log("poolWorker.port.start()");
 poolWorker.port.addEventListener("message", ({ data }) => {
   console.log("poolWorker.port.addEventListener", data);
   for (const callback of callbacks) {
@@ -15,6 +17,10 @@ poolWorker.port.addEventListener("message", ({ data }) => {
       console.error(error);
     }
   }
+});
+
+globalThis.addEventListener("beforeunload", () => {
+  poolWorker.port.close();
 });
 
 export function listen(callback) {

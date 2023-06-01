@@ -1,4 +1,8 @@
-import { finishEvent, utils } from "https://esm.sh/nostr-tools@1.11.1";
+import {
+  finishEvent,
+  utils,
+  getPublicKey,
+} from "https://esm.sh/nostr-tools@1.11.1";
 import { schnorr } from "https://esm.sh/@noble/curves@1.0.0/secp256k1.mjs";
 import { sha256 } from "https://esm.sh/@noble/hashes@1.3.0/sha256.mjs";
 import { bytesToHex } from "https://esm.sh/@noble/hashes@1.3.0/utils.mjs";
@@ -8,6 +12,10 @@ export function power(privateKey, event, difficulty = 0) {
   if (difficulty === 0) {
     event.created_at = Math.round(Date.now() / 1000);
     return finishEvent(event, privateKey);
+  }
+
+  if (!event.pubkey) {
+    event.pubkey = getPublicKey(privateKey);
   }
 
   const eventArray = [

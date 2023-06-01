@@ -65,8 +65,8 @@
           @input="onContenteditableInput" x-html="render('Enter a note, naddr or nevent')">
         </div>
       </label>
-      <pre x-text="event ? JSON.stringify(event, null, 2) : 'Note not found'"></pre>
-      <div x-show="inputValue" x-data="nip19" x-modelable="inputValue" x-model="event" x-effect="genNOTE">
+      <pre x-text="note ? JSON.stringify(note.event, null, 2) : 'Note not found'"></pre>
+      <div x-show="inputValue" x-data="nip19" x-modelable="inputValue" x-model="myEventNotePointer" x-effect="genNOTE">
         <div role="textbox" contenteditable="true" spellcheck="false" @click="onClick" x-html="render()">
         </div>
         <pre x-text="JSON.stringify(inputValue, null, 2)">
@@ -96,7 +96,8 @@
         <input id="note_difficulty" type="number" x-model="difficulty">
       </div>
       <button type="button" @click="onMine">Mine</button>
-      <button type="button" @click="onPublish">Mine and Send</button>
+      <button type="button" @click="onMiningAndPublish">Mine and Send</button>
+      <button type="button" @click="onPublish">Send</button>
       <pre x-text="event ? JSON.stringify(event, null, 2) : 'Nothing mined, yet'"></pre>
       <div x-show="inputValue" x-data="nip19" x-modelable="inputValue" x-model="event" x-effect="genNOTE">
         <div role="textbox" contenteditable="true" spellcheck="false" @click="onClick" x-html="render()">
@@ -116,6 +117,10 @@
         <pre x-text="JSON.stringify(inputValue, null, 2)">
         </pre>
       </div>
+    </fieldset>
+
+    <fieldset x-data="notes">
+      <button type="button" @click="onRequestNotes">Request Notes</button>
     </fieldset>
   </div>
 

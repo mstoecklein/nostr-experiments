@@ -1,8 +1,12 @@
-import { getPublicKey } from "https://esm.sh/nostr-tools@1.11.1";
+import {
+  getPublicKey,
+  generatePrivateKey,
+} from "https://esm.sh/nostr-tools@1.11.1";
 import { getReadableRelays, getWritableRelays } from "../core/relays.js";
 import { getLeadingZeroBitsFromHex } from "../core/utils.js";
 import * as pooljob from "../pooljob.js";
 import * as powerjob from "../powerjob.js";
+import { eventPolicy } from "../core/policies/events.js";
 
 export default function () {
   Alpine.data("profile", () => ({
@@ -10,18 +14,34 @@ export default function () {
     publicKey: null,
     me: null,
 
+    get event() {
+      return this.me?.event;
+    },
+
     init() {
-      pooljob.listen(({ id, type, event }) => {
+      const events = {};
+
+      pooljob.listen(({ type, event, relay }) => {
         if (type === "event" && event.kind === 0) {
-          // console.log("metadata", id, type, event);
-          const pow = getLeadingZeroBitsFromHex(event.id);
+          const currentEvent = eventPolicy(event, relay, events);
+          const pow = getLeadingZeroBitsFromHex(currentEvent.event.id);
+
           this.me = {
-            event,
+            event: currentEvent.event,
+            relays: currentEvent.relays,
             minedEvent: pow > 8 ? event : null,
             pow,
-            content: event.content.startsWith("{")
-              ? JSON.parse(event.content)
-              : event.content,
+            content: {
+              name: "<unnamed>",
+              about: null,
+              picture: null,
+              nip05: null,
+              nip05valid: false,
+              lud16: null,
+              ...(event.content.startsWith("{")
+                ? JSON.parse(event.content)
+                : event.content),
+            },
           };
         }
       });
@@ -50,20 +70,29 @@ export default function () {
     },
 
     _mining() {
+      const map = new Map();
+      if (this.me.content.nip05) {
+        map.set("nip05", this.me.content.nip05);
+        map.set("nip05valid", true);
+      }
+      if (this.me.content.lud16) {
+        map.set("lud16", this.me.content.lud16);
+      }
+      if (this.me.content.about) {
+        map.set("about", this.me.content.about);
+      }
+      if (this.me.content.picture) {
+        map.set("picture", this.me.content.picture);
+      }
+      map.set("name", this.me.content.name || "<unnamed>");
+
       return powerjob.mining(
         this.privateKey,
         {
           kind: 0,
           pubkey: this.publicKey,
-          content: JSON.stringify({
-            name: this.me.content.name,
-            about: this.me.content.about || "",
-            picture: this.me.content.picture || "",
-            nip05: this.me.content.nip05 || "",
-            nip05valid: Boolean(this.me.content.nip05valid),
-            lud16: this.me.content.lud16 || "",
-          }),
-          tags: this.me.event.tags,
+          content: JSON.stringify(Object.fromEntries(map.entries())),
+          tags: this.event.tags,
           created_at: Math.round(Date.now() / 1000),
         },
         this.me.pow
@@ -100,6 +129,34 @@ export default function () {
             this.me.minedEvent = null;
           });
       }
+    },
+
+    publish() {
+      pooljob.pub(this.me.minedEvent, { relays: getWritableRelays() });
+    },
+
+    onGenerate() {
+      this.privateKey = generatePrivateKey();
+      this.publicKey = getPublicKey(this.privateKey);
+
+      const content = {
+        name: "<unnamed>",
+        lud16: null,
+        nip05: null,
+        about: null,
+        picture: null,
+      };
+      this.me = {
+        event: {
+          kind: 0,
+          pubkey: this.publicKey,
+          content: JSON.stringify(content),
+          tags: [],
+        },
+        content,
+        pow: 12,
+        relays: getWritableRelays(),
+      };
     },
   }));
 }

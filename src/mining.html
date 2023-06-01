@@ -56,6 +56,10 @@
       </label>
     </fieldset>
 
+    <fieldset>
+      <button type="button" @click="onGenerate">generate new keypair</button>
+    </fieldset>
+
     <template x-if="me">
       <fieldset>
         <legend>Mining Profile Metadata</legend>
@@ -90,6 +94,7 @@
           <legend>Be careful if you unleash this power!</legend>
           <p>This is highly experimental!</p>
           <button type="button" @click="miningAndPublish">mining and publish</button>
+          <button type="button" @click="publish">publish only</button>
         </fieldset>
       </fieldset>
     </template>
