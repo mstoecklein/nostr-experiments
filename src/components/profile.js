@@ -36,7 +36,6 @@ export default function () {
               about: null,
               picture: null,
               nip05: null,
-              nip05valid: false,
               lud16: null,
               ...(event.content.startsWith("{")
                 ? JSON.parse(event.content)
@@ -73,7 +72,6 @@ export default function () {
       const map = new Map();
       if (this.me.content.nip05) {
         map.set("nip05", this.me.content.nip05);
-        map.set("nip05valid", true);
       }
       if (this.me.content.lud16) {
         map.set("lud16", this.me.content.lud16);
@@ -138,7 +136,13 @@ export default function () {
     onGenerate() {
       this.privateKey = generatePrivateKey();
       this.publicKey = getPublicKey(this.privateKey);
+      this.onFill();
+    },
 
+    onFill() {
+      if (!this.privateKey) {
+        return;
+      }
       const content = {
         name: "<unnamed>",
         lud16: null,

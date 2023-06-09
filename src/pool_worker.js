@@ -12,9 +12,12 @@ onconnect = (e) => {
     const id = getId(4);
     const sub = pool.sub(relays, filters, options);
     subscribers.set(id, sub);
-    sub.on("event", (event, relay) =>
-      port.postMessage({ id, type: "event", event, relay })
-    );
+    sub.on("event", (event, relay) => {
+      if (event.kind === 0) {
+        console.log(event, relay);
+      }
+      port.postMessage({ id, type: "event", event, relay });
+    });
     sub.on("eose", (relay) => port.postMessage({ id, type: "eose", relay }));
   }
 

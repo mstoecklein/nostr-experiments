@@ -1,3 +1,21 @@
+function sanitizeUrl(url) {
+  const urlObj = new URL(url);
+  if (!urlObj.protocol.match(/^(https?|wss?):$/)) {
+    throw new Error("Invalid protocol");
+  }
+  if (!urlObj.hostname.match(/^[a-z0-9.-]+$/)) {
+    throw new Error("Invalid hostname");
+  }
+  // check for https? protocol
+  if (/^https?:$/.test(urlObj.protocol)) {
+    // change to wss? protocol
+    urlObj.protocol = urlObj.protocol
+      .replace(/^http/, "ws")
+      .replace(/^https?/, "wss");
+  }
+  return urlObj.toString();
+}
+
 export default function () {
   Alpine.data("relays", () => ({
     relays: new Map(),

@@ -42,7 +42,8 @@
 
   <div x-data="profile">
     <fieldset>
-      <label x-data="nip19" x-modelable="inputValue" x-model="privateKey" x-effect="genNSEC">
+      <label x-data="nip19" x-modelable="inputValue" x-model="privateKey" x-effect="genNSEC"
+        style="margin-bottom: 1rem;">
         <span>Private Key</span>
         <div role="textbox" contenteditable="true" spellcheck="false" @paste="onPasteNSEC" @click="onClick"
           @keyup.backspace="onBackspace" @input="onContenteditableInput"
@@ -53,11 +54,13 @@
         <span>Public Key</span>
         <div role="textbox" spellcheck="false" @click="onClick" @input="onContenteditableInput" x-html="render()">
         </div>
+        <div role="textbox" @click="onClick" x-text="inputValue"></div>
       </label>
     </fieldset>
 
     <fieldset>
       <button type="button" @click="onGenerate">generate new keypair</button>
+      <button type="button" @click="onFill">fill</button>
     </fieldset>
 
     <template x-if="me">
