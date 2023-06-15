@@ -9,20 +9,20 @@ onconnect = (e) => {
   const subscribers = new Map();
 
   function createSub(relays, filters, options) {
-    const id = getId(4);
+    const id = options.id ?? getId(4);
     const sub = pool.sub(relays, filters, options);
     subscribers.set(id, sub);
     sub.on("event", (event, relay) => {
-      if (event.kind === 0) {
-        console.log(event, relay);
-      }
+      // if (event.kind === 0) {
+      //   console.log(event, relay);
+      // }
       port.postMessage({ id, type: "event", event, relay });
     });
     sub.on("eose", (relay) => port.postMessage({ id, type: "eose", relay }));
   }
 
   port.addEventListener("message", ({ data }) => {
-    console.log("pool_worker.js", data);
+    // console.log("pool_worker.js", data);
     try {
       const { relays, type, params } = data;
 
