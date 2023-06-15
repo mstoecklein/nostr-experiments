@@ -13,7 +13,9 @@ export function power(privateKey, event, difficulty = 0) {
   if (+difficulty === 0) {
     event.created_at = Math.round(Date.now() / 1000);
     const nonceIdx = event.tags.findIndex((tag) => tag[0] === "nonce");
-    event.tags.splice(nonceIdx, 1);
+    if (nonceIdx !== -1) {
+      event.tags.splice(nonceIdx, 1);
+    }
     return finishEvent(event, privateKey);
   }
 

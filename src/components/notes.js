@@ -1,6 +1,5 @@
 import { nip19 } from "https://esm.sh/nostr-tools@1.11.1";
 import { getReadableRelays, getWritableRelays } from "../core/relays.js";
-import { getLeadingZeroBitsFromHex } from "../core/utils.js";
 import * as pooljob from "../pooljob.js";
 import * as powerjob from "../powerjob.js";
 import { eventPolicy } from "../core/policies/events.js";

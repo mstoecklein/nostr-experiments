@@ -49,6 +49,7 @@
           @keyup.backspace="onBackspace" @input="onContenteditableInput"
           x-html="render('Enter a private key (starts with nsec)')">
         </div>
+        <div role="textbox" @click="onClick" x-text="inputValue"></div>
       </label>
       <label x-show="publicKey" x-data="nip19" x-modelable="inputValue" x-model="publicKey" x-effect="genNPUB">
         <span>Public Key</span>
