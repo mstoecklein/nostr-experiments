@@ -11,14 +11,25 @@ export default function () {
     apps: new Map(),
 
     get appdata() {
-      return Array.from(this.apps.values()).map(({ event }) => ({
-        identifier: event.tags?.find(([type]) => type === "d")?.[1] || event.id,
-        name: event.tags?.find(([type]) => type === "name")?.[1] || "",
-        contentType:
-          event.tags?.find(([type]) => type === "type")?.[1] || "text/html",
-        data: event.content || "",
-        event,
-      }));
+      return Array.from(this.apps.values()).map(({ event }) => {
+        const identifier = event?.tags?.find(([type]) => type === "d")?.[1];
+        const name = event?.tags?.find(([type]) => type === "name")?.[1];
+        const contentType = event?.tags?.find(([type]) => type === "type")?.[1];
+        const data = event?.content;
+
+        return {
+          naddr: nip19.naddrEncode({
+            identifier,
+            kind: event.kind,
+            pubkey: event.pubkey,
+          }),
+          identifier,
+          name,
+          contentType,
+          data,
+          event,
+        };
+      });
     },
 
     init() {
@@ -87,6 +98,10 @@ export default function () {
     name: "",
     contentType: "text/html",
     data: "",
+
+    get slug() {
+      return slug(this.name);
+    },
 
     get event() {
       return this.$store.appdata.event;

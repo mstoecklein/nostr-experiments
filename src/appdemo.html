@@ -35,48 +35,53 @@
 </head>
 
 <body>
-  <div x-data="saveStorage">
-    <button type="button" @click="onExport">
-      export settings
-    </button>
-    <button type="button" @click="onImport">
-      import settings
-    </button>
-  </div>
-
-  <div x-data="appcreate">
-    <div>
+  <fieldset x-data="appcreate">
+    <legend>App Editor</legend>
+    <label>
+      <div>App name (<code>[`name`, "&lt;name&gt;"]</code> Tag)</div>
       <input x-model="name" type="text" placeholder="name">
-    </div>
-    <div>
-      <textarea x-model="data" cols="30" rows="10"></textarea>
-    </div>
-    <div>
+    </label>
+    <label>
+      <div>Identifier <code>[`d`, &lt;identifier&gt;]</code></div>
+      <input x-model="slug" readonly type="text" placeholder="identifier">
+    </label>
+    <label>
+      <div>Content Type <code>[`type`, "&lt;content-type&gt;"]</code></div>
       <select x-model="contentType">
         <option value="text/html">HTML</option>
         <option value="text/css">CSS</option>
         <option value="application/javascript">JavaScript</option>
       </select>
-    </div>
+    </label>
+    <label>
+      <div>App Content</div>
+      <textarea x-model="data" cols="30" rows="10"></textarea>
+    </label>
     <button type="button" @click="onCreate">
       deploy
     </button>
-  </div>
+  </fieldset>
 
-  <div x-data="appshow">
+  <fieldset x-data="appshow">
+    <legend>Display App</legend>
     <ul>
       <template x-for="app in appdata">
         <li>
-          <button type="button" @click="onShow(app.event)">
-            <b x-text="app.identifier"></b>
-            (<span x-text="app.name"></span>)
-          </button>
-          <button type="button" @click="onEdit(app.event)">
-            edit
-          </button>
-          <button x-data="appdelete" type="button" @click="onDelete(app.event, 'Deleted by App owner')">
-            delete
-          </button>
+          <div role="group">
+            <button type="button" @click="onShow(app.event)">
+              <b x-text="app.identifier"></b>
+              (<span x-text="app.name"></span>)
+            </button>
+            <button type="button" @click="onEdit(app.event)">
+              edit
+            </button>
+            <button x-data="appdelete" type="button" @click="onDelete(app.event, 'Deleted by App owner')">
+              delete
+            </button>
+          </div>
+          <div role="group">
+            <pre x-text="app.naddr"></pre>
+          </div>
         </li>
       </template>
       <template x-if="!apps || apps.length === 0">
@@ -88,7 +93,7 @@
 
     <iframe x-ref="iframe" src="about:blank" frameborder="0" csp="frame-src 'self'"
       sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
-  </div>
+  </fieldset>
 
   <ul x-data="relays">
     <template x-for="([relay, options]) in Array.from(relays)">
